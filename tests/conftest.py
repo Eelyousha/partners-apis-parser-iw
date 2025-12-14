@@ -1,5 +1,6 @@
 """Pytest configuration and fixtures."""
 
+from collections.abc import Generator
 from datetime import date
 from typing import Any
 from unittest.mock import MagicMock
@@ -138,7 +139,7 @@ def xml_partner_response() -> str:
 
 
 @pytest.fixture(autouse=True)
-def reset_queue():
+def reset_queue() -> Generator[None, None, None]:
     """Reset queue manager before each test."""
     reset_queue_manager()
     yield

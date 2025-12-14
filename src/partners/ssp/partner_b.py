@@ -1,5 +1,6 @@
 """SSP Partner B implementation."""
 
+from datetime import date
 from typing import Any
 
 from aiohttp import ClientSession
@@ -54,7 +55,9 @@ class SSPPartnerB(JSONPartner):
 
         return result
 
-    async def fetch_data(self, session: ClientSession, start_date, end_date):
+    async def fetch_data(
+        self, session: ClientSession, start_date: date, end_date: date
+    ) -> list[Any]:
         """Override to handle dynamic token."""
 
         from src.core.models import PartnerData, aggregate_partner_data

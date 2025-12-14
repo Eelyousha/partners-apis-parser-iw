@@ -57,7 +57,8 @@ class ClickHouseStorage:
 
     def query(self, sql: str) -> list[tuple[Any, ...]]:
         """Execute a query and return results."""
-        return self.client.execute(sql)
+        result = self.client.execute(sql)
+        return result  # type: ignore[no-any-return]
 
     def close(self) -> None:
         """Close the client connection."""

@@ -48,7 +48,7 @@ class SSPSuperPartner(JSONPartner):
 
     def parse_json(self, data: dict[str, Any]) -> list[tuple[str, int, float]]:
         """Parse SuperPartner JSON response."""
-        result = []
+        result: list[tuple[str, int, float]] = []
 
         # Check for success response
         if data.get("code") != 0:

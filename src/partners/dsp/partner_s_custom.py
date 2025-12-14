@@ -6,6 +6,7 @@ import ssl
 import xmlrpc.client
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date
+from typing import Any
 
 from aiohttp import ClientSession
 
@@ -23,12 +24,12 @@ class CookiesTransport(xmlrpc.client.SafeTransport):
         super().__init__(context=context)
         self._cookies: list[str] = []
 
-    def send_headers(self, connection, headers) -> None:
+    def send_headers(self, connection: Any, headers: Any) -> None:
         if self._cookies:
             connection.putheader("Cookie", "; ".join(self._cookies))
         super().send_headers(connection, headers)
 
-    def parse_response(self, response):
+    def parse_response(self, response: Any) -> Any:
         if response.msg.get_all("Set-Cookie"):
             for header in response.msg.get_all("Set-Cookie"):
                 cookie = header.split(";", 1)[0]
@@ -67,8 +68,10 @@ class DSPPartnerSCustom(CustomPartner):
                         1,
                         ep,
                     )
-                    for row in res:
-                        results.append(row)
+                    if isinstance(res, list):
+                        for row in res:
+                            if isinstance(row, dict):
+                                results.append(row)
                 logger.info(f"Partner S ep={ep} fetched successfully")
             except Exception as e:
                 logger.error(f"Partner S ep={ep} failed: {e}")

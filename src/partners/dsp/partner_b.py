@@ -1,5 +1,6 @@
 """DSP Partner B implementation."""
 
+from datetime import date
 from typing import Any
 
 from aiohttp import ClientSession
@@ -56,7 +57,9 @@ class DSPPartnerB(JSONPartner):
 
         return result
 
-    async def fetch_data(self, session: ClientSession, start_date, end_date):
+    async def fetch_data(
+        self, session: ClientSession, start_date: date, end_date: date
+    ) -> list[PartnerData]:
         """Override to handle dynamic token."""
         import logging
 
