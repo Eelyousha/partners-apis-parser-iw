@@ -77,7 +77,7 @@ class DSPPartnerSCustom(CustomPartner):
 
     async def fetch_data(
         self,
-        session: ClientSession,
+        session: ClientSession,  # noqa: ARG002
         start_date: date,
         end_date: date,  # noqa: ARG002
     ) -> list[PartnerData]:

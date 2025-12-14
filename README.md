@@ -430,7 +430,3 @@ export CLICKHOUSE_HOST="..."
   "job_id": "uuid-string"
 }
 ```
-
-## Лицензия
-
-MIT
