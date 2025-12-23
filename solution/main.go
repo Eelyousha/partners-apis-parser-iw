@@ -49,7 +49,7 @@ func main() {
 	pq := &PriorityQueue{}
 	heap.Init(pq)
 
-	// Добавляем все водные клетки как источники
+	// Добавляем все водные клетки (h=0) с временем 0
 	for i := 0; i < n; i++ {
 		for j := 0; j < m; j++ {
 			if h[i][j] == 0 {
@@ -58,10 +58,29 @@ func main() {
 		}
 	}
 
+	// Добавляем граничные клетки — они соседствуют с океаном снаружи карты
+	// Граничная клетка затопляется когда уровень воды достигает её высоты
+	for i := 0; i < n; i++ {
+		if h[i][0] > 0 {
+			heap.Push(pq, Item{h[i][0], i, 0})
+		}
+		if m > 1 && h[i][m-1] > 0 {
+			heap.Push(pq, Item{h[i][m-1], i, m - 1})
+		}
+	}
+	for j := 1; j < m-1; j++ {
+		if h[0][j] > 0 {
+			heap.Push(pq, Item{h[0][j], 0, j})
+		}
+		if n > 1 && h[n-1][j] > 0 {
+			heap.Push(pq, Item{h[n-1][j], n - 1, j})
+		}
+	}
+
 	dx := []int{-1, 1, 0, 0}
 	dy := []int{0, 0, -1, 1}
 
-	// Dijkstra от всех водных клеток
+	// Dijkstra от всех источников воды
 	for pq.Len() > 0 {
 		item := heap.Pop(pq).(Item)
 		t, r, c := item.time, item.row, item.col
@@ -90,11 +109,7 @@ func main() {
 			if j > 0 {
 				fmt.Fprint(writer, " ")
 			}
-			if result[i][j] == -1 {
-				fmt.Fprint(writer, 0)
-			} else {
-				fmt.Fprint(writer, result[i][j])
-			}
+			fmt.Fprint(writer, result[i][j])
 		}
 		fmt.Fprintln(writer)
 	}
