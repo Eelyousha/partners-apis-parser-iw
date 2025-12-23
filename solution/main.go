@@ -2,72 +2,100 @@ package main
 
 import (
 	"bufio"
+	"container/heap"
 	"fmt"
 	"os"
 )
 
+type Item struct {
+	time int
+	row  int
+	col  int
+}
+
+type PriorityQueue []Item
+
+func (pq PriorityQueue) Len() int           { return len(pq) }
+func (pq PriorityQueue) Less(i, j int) bool { return pq[i].time < pq[j].time }
+func (pq PriorityQueue) Swap(i, j int)      { pq[i], pq[j] = pq[j], pq[i] }
+func (pq *PriorityQueue) Push(x any)        { *pq = append(*pq, x.(Item)) }
+func (pq *PriorityQueue) Pop() any {
+	old := *pq
+	n := len(old)
+	x := old[n-1]
+	*pq = old[0 : n-1]
+	return x
+}
+
 func main() {
 	reader := bufio.NewReader(os.Stdin)
+	writer := bufio.NewWriter(os.Stdout)
+	defer writer.Flush()
 
 	var n, m int
 	fmt.Fscan(reader, &n, &m)
 
-	values := make([]int, n)
+	h := make([][]int, n)
+	result := make([][]int, n)
 	for i := 0; i < n; i++ {
-		fmt.Fscan(reader, &values[i])
+		h[i] = make([]int, m)
+		result[i] = make([]int, m)
+		for j := 0; j < m; j++ {
+			fmt.Fscan(reader, &h[i][j])
+			result[i][j] = -1
+		}
 	}
 
-	adj := make([][]int, n)
+	pq := &PriorityQueue{}
+	heap.Init(pq)
+
+	// Добавляем все водные клетки как источники
 	for i := 0; i < n; i++ {
-		adj[i] = []int{}
-	}
-
-	for i := 0; i < m; i++ {
-		var a, b int
-		fmt.Fscan(reader, &a, &b)
-		a--
-		b--
-		adj[a] = append(adj[a], b)
-		adj[b] = append(adj[b], a)
-	}
-
-	// dp[mask] = битовая маска возможных последних островов для посещённого множества mask
-	dp := make([]int, 1<<n)
-
-	// Начинаем с острова 0 (1 в 1-индексации)
-	dp[1] = 1
-
-	for mask := 1; mask < (1 << n); mask++ {
-		if dp[mask] == 0 {
-			continue
-		}
-		for last := 0; last < n; last++ {
-			if dp[mask]&(1<<last) == 0 {
-				continue
+		for j := 0; j < m; j++ {
+			if h[i][j] == 0 {
+				heap.Push(pq, Item{0, i, j})
 			}
-			for _, next := range adj[last] {
-				if mask&(1<<next) == 0 {
-					dp[mask|(1<<next)] |= (1 << next)
+		}
+	}
+
+	dx := []int{-1, 1, 0, 0}
+	dy := []int{0, 0, -1, 1}
+
+	// Dijkstra от всех водных клеток
+	for pq.Len() > 0 {
+		item := heap.Pop(pq).(Item)
+		t, r, c := item.time, item.row, item.col
+
+		if result[r][c] != -1 {
+			continue // уже обработано
+		}
+		result[r][c] = t
+
+		for d := 0; d < 4; d++ {
+			nr, nc := r+dx[d], c+dy[d]
+			if nr >= 0 && nr < n && nc >= 0 && nc < m && result[nr][nc] == -1 {
+				// Время затопления соседа = max(текущее время, высота соседа)
+				newTime := t
+				if h[nr][nc] > newTime {
+					newTime = h[nr][nc]
 				}
+				heap.Push(pq, Item{newTime, nr, nc})
 			}
 		}
 	}
 
-	// Находим максимальную сумму среди достижимых масок
-	maxSum := values[0] // Минимум — сокровище с острова 1
-	for mask := 1; mask < (1 << n); mask++ {
-		if dp[mask] != 0 {
-			sum := 0
-			for i := 0; i < n; i++ {
-				if mask&(1<<i) != 0 {
-					sum += values[i]
-				}
+	// Вывод результата
+	for i := 0; i < n; i++ {
+		for j := 0; j < m; j++ {
+			if j > 0 {
+				fmt.Fprint(writer, " ")
 			}
-			if sum > maxSum {
-				maxSum = sum
+			if result[i][j] == -1 {
+				fmt.Fprint(writer, 0)
+			} else {
+				fmt.Fprint(writer, result[i][j])
 			}
 		}
+		fmt.Fprintln(writer)
 	}
-
-	fmt.Println(maxSum)
 }
